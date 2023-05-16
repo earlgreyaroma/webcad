@@ -1,0 +1,10 @@
+CREATE DATABASE mydatabase;
+CREATE USER myuser WITH ENCRYPTED PASSWORD 'mypassword';
+GRANT ALL PRIVILEGES ON DATABASE mydatabase TO myuser;
+
+-- Create a table called "users"
+CREATE TABLE users (
+  id SERIAL PRIMARY KEY,
+  userID VARCHAR(255) NOT NULL UNIQUE,
+  date_added TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);

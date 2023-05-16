@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  db:
+    build:
+      context: ./db
+      dockerfile: Dockerfile
+      name: webcad_db_image
+    container_name: webcad_db_container
+    ports:
+      - 5432:5432
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: mypassword
+      POSTGRES_DB: mydatabase
+    restart: always
+    networks:
+      - kit_subnet
+
+  app:
+    build: 
+      context: ./app
+      dockerfile: Dockerfile
+      name: webcad_app_image
+    container_name: webcad_app_container
+    ports:
+      - "5000:5000"
+    restart: always
+    depends_on:
+      - db
+    networks:
+      - kit_subnet
+
+networks:
+  kit_subnet:
+    ipam:
+      config:
+        - subnet: 10.0.0.0/8
+
+volumes:
+  pgdata:

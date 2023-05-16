@@ -10,7 +10,6 @@ services:
     environment:
       POSTGRES_USER: myuser
       POSTGRES_PASSWORD: mypassword
-      POSTGRES_DB: mydatabase
     restart: always
     networks:
       - kit_subnet

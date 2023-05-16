@@ -12,7 +12,7 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = 'super duper secret key'
 
 # Initialize MySQL Database
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://myuser:mypassword@10.0.0.2:5432/mydatabase'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://myuser:mypassword@10.0.0.2:5432/webcad_db'
 db = SQLAlchemy(app)
 
 # setup login manager
@@ -98,7 +98,9 @@ def part(user_id):
 @app.route('/admin', methods=['GET', 'POST'])
 def admin_index():
     form = AdminForm()
-    if form.validate_on_submit():
+    if Admins.query.count() == 0:
+        return redirect(url_for('admin_setup'))
+    elif form.validate_on_submit():
         user = Admins.query.filter_by(username=form.username.data).first()
         if user:
             if check_password_hash(user.password_hash, form.password.data):
@@ -111,18 +113,22 @@ def admin_index():
 # Admin First Login Route Decorator
 @app.route('/admin/setup', methods=['GET', 'POST'])
 def admin_setup():
-    form = AdminRegisterForm()
-    if form.validate_on_submit():
-        user = Admins.query.filter_by(username=form.username.data).first()
-        if user is None:
-            hashed_pw = generate_password_hash(form.password.data, method='scrypt')
-            user = Admins(username=form.username.data, password_hash=hashed_pw)
-            db.session.add(user)
-            db.session.commit()
-        form.username.data = ''
-        form.password.data = ''
-        form.password2.data = ''
-    return render_template('admin/setup.html', form=form)
+    if Admins.query.count() != 0:
+        return redirect(url_for('admin_index'))
+    else:
+        form = AdminRegisterForm()
+        if form.validate_on_submit():
+            user = Admins.query.filter_by(username=form.username.data).first()
+            if user is None:
+                hashed_pw = generate_password_hash(form.password.data, method='scrypt')
+                user = Admins(username=form.username.data, password_hash=hashed_pw)
+                db.session.add(user)
+                db.session.commit()
+                return redirect(url_for('admin_index'))
+            form.username.data = ''
+            form.password.data = ''
+            form.password2.data = ''
+        return render_template('admin/setup.html', form=form)
 
 # Admin Settings Route Decorator
 @app.route('/admin/settings', methods=['GET', 'POST'])

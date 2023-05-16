@@ -4,7 +4,7 @@ FROM postgres:13
 # Set environment variables
 ENV POSTGRES_USER myuser
 ENV POSTGRES_PASSWORD mypassword
-ENV POSTGRES_DB mydatabase
+ENV POSTGRES_DB webcad_db
 
 # Copy the SQL script to the Docker image
 COPY init.sql /docker-entrypoint-initdb.d/

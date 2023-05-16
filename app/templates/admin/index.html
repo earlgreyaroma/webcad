@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    Start
+{% endblock %}
+
+{% block content %}
+    <br/>
+    <form method="post">
+
+        {{ form.hidden_tag() }}
+
+        {{ form.username(class='form-control', placeholder='Username') }}
+        <br/>
+        {{ form.password(class='form-control', placeholder='Password') }}
+        <br/>
+        {{ form.submit(class='btn btn-primary') }}
+
+    </form>
+
+{% endblock %}

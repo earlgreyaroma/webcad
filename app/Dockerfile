@@ -21,9 +21,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy the project files
 COPY . .
 
-# Set Environment variable
-ENV PORT=5000
-
 # Expose port 5000
 EXPOSE 5000
 

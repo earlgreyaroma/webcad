@@ -15,7 +15,7 @@ db = SQLAlchemy(app)
 
 # Create MySQL Model
 class Users(db.Model):
-    id = db.Column(db.Integer, primery_key=True)
+    id = db.Column(db.Integer, primary_key=True)
     userID = db.Column(db.String(255), nullable=False, unique=True)
     date_added = db.Column(db.DateTime, default=datetime.utcnow)
 

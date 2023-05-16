@@ -2,13 +2,9 @@ version: '3.8'
 
 services:
   db:
-    build:
-      context: ./db
-      dockerfile: Dockerfile
-      name: webcad_db_image
-    container_name: webcad_db_container
+    build: ./db
     ports:
-      - 5432:5432
+      - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     environment:
@@ -20,11 +16,7 @@ services:
       - kit_subnet
 
   app:
-    build: 
-      context: ./app
-      dockerfile: Dockerfile
-      name: webcad_app_image
-    container_name: webcad_app_container
+    build: ./app
     ports:
       - "5000:5000"
     restart: always

@@ -52,8 +52,8 @@ def admin_settings():
     if current_user.admin_check == True:
         if API_Keys.query.count() == 0:
             return redirect(url_for('admin_bp.admin_keys'))
-        else:
-            api_keys = API_Keys.query.filter_by(user_id=current_user.id).order_by(API_Keys.date_added.desc()).first
+        api_keys = API_Keys.query.filter_by(user_id=current_user.id).order_by(API_Keys.date_added.desc()).first
+        osc.auth(new_keys.access_key, new_keys.secret_key)
         return render_template('admin/settings.html')
     else:
         return redirect(url_for('admin_bp.admin_index'))
@@ -76,7 +76,6 @@ def admin_keys():
             new_keys = API_Keys(user_id=current_user.id, access_key=form.access_key.data, secret_key=form.secret_key.data)
             db.session.add(new_keys)
             db.session.commit()
-            osc.auth(new_keys.access_key, new_keys.secret_key)
             return redirect(url_for('admin_bp.admin_settings'))
         return render_template('admin/keys.html', form=form)
     else:

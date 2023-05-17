@@ -6,6 +6,8 @@
 
 {% block content %}
     <br/>
+    <a class="btn btn-primary" href="{{url_for('user_bp.index')}}" role="button">Back to Start</a>
+    <br/>
     <form method="post">
 
         {{ form.hidden_tag() }}

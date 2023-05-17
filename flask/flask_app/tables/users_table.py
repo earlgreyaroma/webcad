@@ -4,14 +4,15 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
 
 # Access Admin PostgreSQL Table
-class Admins(db.Model, UserMixin):
-    __tablename__ = 'admins'
+class Users(db.Model, UserMixin):
+    __tablename__ = 'users'
     id = db.Column(db.Integer, primary_key=True)
     date_added = db.Column(db.DateTime, default=datetime.utcnow)
+    admin_check = db.Column(db.Boolean, default=False)
     username = db.Column(db.String(255), nullable=False, unique=True)
-    password_hash = db.Column(db.String(255), nullable=False)
-    access_key = db.Column(db.String(255))
-    secret_key = db.Column(db.String(255))
+    password_hash = db.Column(db.String(255))
+    actions = db.relationship('Actions', backref='user')
+    api_keys = db.relationship('API_Keys', backref='user')
 
     @property
     def password(self):

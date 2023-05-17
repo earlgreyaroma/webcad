@@ -1,9 +1,13 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
+from onshapeclient import Client
 
 # Set Up SQLAlchemy Object
 db = SQLAlchemy()
+
+# Set Up API Client for OnShape
+osc = Client()
 
 # Define Start Method
 def create_app():
@@ -27,11 +31,11 @@ def create_app():
     login_manager.init_app(app)
     login_manager.login_view = 'user_bp.index'
 
-    from .tables import Admins
+    from .tables import Users
 
     @login_manager.user_loader
     def load_user(user_id):
-        return Admins.query.get(int(user_id))
+        return Users.query.get(int(user_id))
 
     return app
 

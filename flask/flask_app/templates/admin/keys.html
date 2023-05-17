@@ -8,13 +8,13 @@
    
     <form method="post">
 
-        {{ key_form.hidden_tag() }}
+        {{ form.hidden_tag() }}
 
-        {{ key_form.access_key(class='form-control', placeholder='OnShape API Access Key') }}
+        {{ form.access_key(class='form-control', placeholder='OnShape API Access Key') }}
         <br/>
-        {{ key_form.secret_key(class='form-control', placeholder='OnShape API Secret Key') }}
+        {{ form.secret_key(class='form-control', placeholder='OnShape API Secret Key') }}
         <br/>
-        {{ key_form.submit(class='btn btn-primary') }}
+        {{ form.submit(class='btn btn-primary') }}
 
     </form>
 

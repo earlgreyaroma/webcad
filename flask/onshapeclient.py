@@ -1,18 +1,17 @@
 import requests
-try:
-    import simplejson as json
-except:
-    import json
+import json
 
 
 class Client():
 
-    def __init__(self, accessKey: str, secretKey: str):
+    def __init__(self):
 
         # api url
         self.baseUrl = 'https://cad.onshape.com/api/v6'
         self.headers = {'Content-Type':'application/json; charset=UTF-8; qs=0.09'}
 
+
+    def auth(self, accessKey: str, secretKey: str):
         # pass args
         self.accessKey = accessKey
         self.secretKey = secretKey

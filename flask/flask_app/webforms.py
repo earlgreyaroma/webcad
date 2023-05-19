@@ -21,11 +21,14 @@ class AdminRegisterForm(FlaskForm):
     submit = SubmitField('Register')
 
 # Create Admin Settings Form
-class AdminRegisterForm(FlaskForm):
-    did = SelectField(validators=[DataRequired()])
-    wid = SelectField(validators=[DataRequired()])
-    eid = SelectField(validators=[DataRequired()])
-    submit = SubmitField('Save Settings')
+class DidForm(FlaskForm):
+    did = SelectField(choices=[], validators=[DataRequired()])
+    submit_did = SubmitField('Save Document')
+
+# Create Admin Settings Form
+class EidForm(FlaskForm):
+    eid = SelectField(choices=[], validators=[DataRequired()])
+    submit_eid = SubmitField('Save Element')
 
 # Create API Keys Form
 class KeysForm(FlaskForm):

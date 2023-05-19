@@ -23,7 +23,7 @@ def create_app():
     from .routes import admin_bp, user_bp, error_bp
     
     app.register_blueprint(user_bp, url_prefix='/')
-    app.register_blueprint(admin_bp, url_prefix='/')
+    app.register_blueprint(admin_bp, url_prefix='/admin/')
     app.register_blueprint(error_bp)
 
     # Set Up Login Manager

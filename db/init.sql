@@ -9,11 +9,11 @@ CREATE TABLE users (
   password_hash VARCHAR(255)
 );
 
--- Create an admin table
+-- Track OnShape API Data
 CREATE TABLE api_keys (
   id SERIAL PRIMARY KEY,
   date_added TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  user_id INTEGER REFERENCES users(id),
+  user_id INTEGER REFERENCES users(id) UNIQUE,
   access_key VARCHAR(255),
   secret_key VARCHAR(255)
 );

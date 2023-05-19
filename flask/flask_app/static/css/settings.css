@@ -1,0 +1,21 @@
+.container {
+  max-width: 960px;
+}
+
+.dropdown-toggle::after {
+  display: none;
+}
+
+#thumbnail {
+  max-width: 100%;
+  max-height: 100%;
+}
+
+.scrollable-dropdown {
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.range-group {
+  background-color: white;
+}

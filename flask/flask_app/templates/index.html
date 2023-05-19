@@ -1,22 +1,31 @@
 {% extends 'base.html' %}
 
+{% block head %}
+  <link href="{{ url_for('static', filename='css/index.css') }}" rel="stylesheet">
+{% endblock %}
+
 {% block title %}
     Start
 {% endblock %}
 
+{% block body_class %}
+  text-center
+{% endblock %}
+
 {% block content %}
 
-    <br/>
-    <a class="btn btn-primary" href="{{url_for('admin_bp.admin_index')}}" role="button">Admin Login</a>
-    <br/>
+    <main class="form-signin w-100 m-auto">
     <form method="post">
-
-        {{ form.hidden_tag() }}
-
-        {{ form.user_id(class='form-control', placeholder='Enter UserID') }}
-        <br/>
-        {{ form.submit(class='btn btn-primary') }}
-
+        <h1 class="h3 mb-3 fw-normal">Welcome</h1>
+      
+        <div class="form-floating">
+            <input type="text" class="form-control" id="username" name="username" placeholder="User-ID">
+            <label for="username">Username</label>
+        </div>
+  
+        <button class="w-100 btn btn-lg btn-primary" type="submit">Start</button><p>
+        <a class="link-opacity-50" href="{{ url_for('admin_bp.index') }}">Admin Log In</a></p>
     </form>
+  </main>
 
 {% endblock %}

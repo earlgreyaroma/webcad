@@ -10,6 +10,14 @@ class Client():
         self.baseUrl = 'https://cad.onshape.com/api/v6'
         self.headers = {'Content-Type':'application/json; charset=UTF-8; qs=0.09'}
 
+        self.did = None
+        self.did_name = None
+        self.wid = None
+        self.eid = None
+        self.eid_name = None
+        self.veid = None
+        self.veid_name = None
+        self.pid = None
 
     def auth(self, accessKey: str, secretKey: str):
         # pass args
@@ -20,165 +28,127 @@ class Client():
         self.session = requests.Session()
         self.session.auth = (accessKey, secretKey)
 
+        checkRes = self.session.get(self.baseUrl + '/users/sessioninfo', headers=self.headers)
+        status_code = checkRes.status_code
+
+        if status_code == 200:
+            check = checkRes.json()
+            state = check['state']
+            if state == 1:
+                result = True
+            else:
+                result = False
+        else:
+            result = False
+
+        return result
 
     def get_documents(self):
 
-        docsReq = self.session.get(self.baseUrl + '/documents', headers=self.headers)
-        docs = docsReq.json()
+        docsRes = self.session.get(self.baseUrl + '/documents', headers=self.headers)
+        docs = docsRes.json()
 
         return docs
 
+    def get_dids(self):
 
-    def get_document(self, did: str):
+        dids = {}
+        didsRes = self.get_documents()
 
-        docReq = self.session.get(self.baseUrl + '/documents/' + did, headers=self.headers)
-        doc = docReq.json()
+        for did in didsRes['items']:
+            dids[did['name']] = did['id']
+
+        return dids
+
+    def set_did(self, did: str):
+        self.did = did
+
+    def get_document(self):
+
+        docRes = self.session.get(self.baseUrl + '/documents/' + self.did, headers=self.headers)
+        doc = docRes.json()
 
         return doc
 
+    def get_wid(self):
 
-    def get_elements(self, did: str, wid: str):
-
-        eleReq = self.session.get(self.baseUrl + '/documents/d/' + did + '/w/' + wid + '/elements', headers=self.headers)
-        ele = eleReq.json()
-
-        return ele
-
-
-    def get_parts(self, did: str, wid: str, eid:str):
-        
-        partsReq = self.session.get(self.baseUrl + '/parts/d/' + did + '/w/' + wid + '/e/' + eid, headers=self.headers)
-        parts = partsReq.json()
-
-        return parts
-
-
-    def get_gltf_pid(self, did: str, wid: str, eid: str, pid: str):
-
-        headers = {'Content-Type':'model/gltf-binary; qs=0.09'}
-        
-        gltfReq = self.session.get(self.baseUrl + '/parts/d/' + did + '/w/' + wid + '/e/' + eid + '/partid/' + pid + '/gltf', headers=self.headers)
-        gltf = gltfReq.json()
-
-        return gltf
-
-    def get_gltf(self, did: str, wid: str, eid: str):
-
-        headers = {'Content-Type':'model/gltf-binary; qs=0.09'}
-        
-        gltfReq = self.session.get(self.baseUrl + '/partstudios/d/' + did + '/w/' + wid + '/e/' + eid + '/gltf', headers=self.headers)
-        gltf = gltfReq.json()
-
-        return gltf
-
-    def get_gltf_assembly(self, did: str, wid: str, eid: str):
-
-        # create request body
-        reqBody = {
-            "allowFaultyParts": False,
-            "angularTolerance": 0.01,
-            "distanceTolerance": 0.01,
-            "formatName": "GLTF",
-            "importWithinDocument": True,
-            "maximumChordLength": 0.01,
-            "storeInDocument": False
-        }
-        reqBodyJSON = json.dumps(reqBody)
-
-        # get assembly translation and tid
-        tranRes = self.session.post(self.baseUrl + '/assemblies/d/' + did + '/w/' + wid + '/e/' + eid + '/translations', data=reqBodyJSON, headers=self.headers)
-        tran = tranRes.json()
-        tid = tran['id']
-
-        # check if request status is DONE and extract external data id
-        reqStatus = ''
-        while reqStatus != 'DONE':
-            statusRes = self.session.get(self.baseUrl + '/translations/' + tid, headers=self.headers)
-            status = statusRes.json()
-            reqStatus = status['requestState']
-        edid = status['resultExternalDataIds'][0]
-
-        # get gltf object
-        gltfRes = self.session.get(self.baseUrl + '/documents/d/' + did + '/externaldata/' + edid, headers=self.headers)
-        gltf = gltfRes.json()
-
-        return gltf
-
-    def get_variables(self, did: str, wid: str, eid: str):
-
-        varReq = self.session.get(self.baseUrl + '/variables/d/' + did + '/w/' + wid + '/e/' + eid + '/variables', headers=self.headers)
-        var = varReq.json()
-
-        return var
-
-    def get_dids(self):
-
-        docsDid = {}
-        docsDidReq = self.get_documents()
-
-        for docDid in docsDidReq['items']:
-            docsDid[docDid['name']] = docDid['id']
-
-        return docsDid
-
-
-    def get_wid(self, did: str):
-
-        widReq = self.get_document(did)
-        wid = widReq['defaultWorkspace']['id']
+        widRes = self.get_document()
+        wid = widRes['defaultWorkspace']['id']
 
         return wid
 
-    def get_eids(self, did: str, wid: str):
+    def set_wid(self, wid: str):
+        self.wid = wid
+
+    def get_elements(self):
+
+        elesRes = self.session.get(self.baseUrl + '/documents/d/' + self.did + '/w/' + self.wid + '/elements', headers=self.headers)
+        eles = elesRes.json()
+
+        return eles
+
+    def get_eids(self):
         
-        eleReq = self.get_elements(did, wid)
+        eidRes = self.get_elements()
 
         eids = {}
-        for ele in eleReq:
-            eids[ele['name']] = ele['id']
+        for eid in eidRes:
+            eids[eid['name']] = eid['id']
 
         return eids
 
+    def set_eid(self, eid: str):
+        self.eid = eid
 
-    def get_pids(self, did: str, wid: str, eid: str):
-        
-        pidReq = self.get_parts(did, wid, eid)
+    def set_veid(self, veid: str):
+        self.veid = veid
 
-        print(pidReq)
-        pids = {}
-        for pid in pidReq:
-            pids[pid['name']] = pid['partId']
+    def get_variables(self):
 
-        return pids
+        varsRes = self.session.get(self.baseUrl + '/variables/d/' + self.did + '/w/' + self.wid + '/e/' + self.veid + '/variables', headers=self.headers)
+        _vars = varsRes.json()
 
-    def get_variables_dict(self, did: str, wid: str, eid: str):
+        return _vars
 
-        variables = self.get_variables(did, wid, eid)[0]['variables']
-        varList = {}
-        for var in variables:
-            varList[var['name']] = var['expression']
+    def get_variables_dict(self):
 
-        return varList
+        _vars = self.get_variables()[0]['variables']
+        varsList = {}
+        for var in _vars:
+            varsList[var['name']] = var['expression']
+
+        return varsList
 
 
-    def change_varstudio_var(self, name: str, expression: str, did: str, wid: str, eid: str):
+    def change_varstudio_var(self, name: str, expression: str):
 
-        variables = self.get_variables(did, wid, eid)[0]['variables']
+        variables = self.get_variables()[0]['variables']
         for idx, var in enumerate(variables):
             if var['name'] == name:
                 variables[idx]['expression'] = expression
-
         variablesJSON = json.dumps(variables)
 
-        varRes = self.session.post(self.baseUrl + '/variables/d/' + did + '/w/' + wid + '/e/' + eid + '/variables', data=variablesJSON, headers=self.headers)
+        varRes = self.session.post(self.baseUrl + '/variables/d/' + self.did + '/w/' + self.wid + '/e/' + self.veid + '/variables', data=variablesJSON, headers=self.headers)
+        
         return varRes
 
+    def get_thumbnail(self, size: str):
 
-    def copy_workspace(self, newName: str, did: str, wid: str, isPublic=False):
+        thumbRes = self.session.get(self.baseUrl + '/thumbnails/d/' + self.did + '/w/' + self.wid + '/e/' + self.eid + '/s/' + size, headers=self.headers)
+        thumb = thumbRes.content
+        return thumb
+
+    def set_eid_name(self, eid_name: str):
+        self.eid_name = eid_name
+
+    def set_veid_name(self, veid_name: str):
+        self.veid_name = veid_name
+
+    def copy_workspace(self, newName: str, isPublic=False):
         
         # get file information
-        infoReq = self.session.get(self.baseUrl + '/documents/' + did, headers=self.headers)
-        info = infoReq.json()
+        infoRes = self.session.get(self.baseUrl + '/documents/' + self.did, headers=self.headers)
+        info = infoRes.json()
 
         # create required body for post request
         copyInfos = {
@@ -193,11 +163,136 @@ class Client():
         copyInfosJson = json.dumps(copyInfos)
 
         # create copy via API command
-        copyRes = self.session.post(self.baseUrl + '/documents/' + did + '/workspaces/' + wid + '/copy', data=copyInfosJson, headers=self.headers)
+        copyRes = self.session.post(self.baseUrl + '/documents/' + self.did + '/workspaces/' + self.wid + '/copy', data=copyInfosJson, headers=self.headers)
         copyDict = copyRes.json()
+        newDid = copyDict['newDocumentId']
+        newWid = copyDict['newWorkspaceId']
 
-        return copyDict
+        return [newDid, newWid]
         
+    def get_gltf(self):
+
+        headers = {'Content-Type':'model/gltf-binary; qs=0.09'}
+        
+        gltfReq = self.session.get(self.baseUrl + '/partstudios/d/' + self.did + '/w/' + self.wid + '/e/' + self.eid + '/gltf', headers=self.headers)
+        gltf = gltfReq.json()
+
+        return gltf
+
+    def get_gltf_assembly(self):
+
+        # create request body
+        reqBody = {
+            "allowFaultyParts": False,
+            "angularTolerance": 0.01,
+            "distanceTolerance": 0.01,
+            "formatName": "GLTF",
+            "importWithinDocument": True,
+            "maximumChordLength": 0.01,
+            "storeInDocument": False
+        }
+        reqBodyJSON = json.dumps(reqBody)
+
+        # get assembly translation and tid
+        tranRes = self.session.post(self.baseUrl + '/assemblies/d/' + self.did + '/w/' + self.wid + '/e/' + self.eid + '/translations', data=reqBodyJSON, headers=self.headers)
+        tran = tranRes.json()
+        tid = tran['id']
+
+        # check if request status is DONE and extract external data id
+        reqStatus = ''
+        while reqStatus != 'DONE':
+            statusRes = self.session.get(self.baseUrl + '/translations/' + tid, headers=self.headers)
+            status = statusRes.json()
+            reqStatus = status['requestState']
+        edid = status['resultExternalDataIds'][0]
+
+        # get gltf object
+        gltfRes = self.session.get(self.baseUrl + '/documents/d/' + self.did + '/externaldata/' + edid, headers=self.headers)
+        gltf = gltfRes.json()
+
+        return gltf
+
+    def set_pid(self, pid: str):
+        self.pid = pid
+
+
+
+
+
+
+    def get_parts(self):
+        
+        partsReq = self.session.get(self.baseUrl + '/parts/d/' + self.did + '/w/' + self.wid + '/e/' + self.eid, headers=self.headers)
+        parts = partsReq.json()
+
+        return parts
+
+
+    def get_gltf_pid(self):
+
+        headers = {'Content-Type':'model/gltf-binary; qs=0.09'}
+        
+        gltfReq = self.session.get(self.baseUrl + '/parts/d/' + self.did + '/w/' + self.wid + '/e/' + self.eid + '/partid/' + self.pid + '/gltf', headers=self.headers)
+        gltf = gltfReq.json()
+
+        return gltf
+
+
+
+    def get_gltf_assembly(self):
+
+        # create request body
+        reqBody = {
+            "allowFaultyParts": False,
+            "angularTolerance": 0.01,
+            "distanceTolerance": 0.01,
+            "formatName": "GLTF",
+            "importWithinDocument": True,
+            "maximumChordLength": 0.01,
+            "storeInDocument": False
+        }
+        reqBodyJSON = json.dumps(reqBody)
+
+        # get assembly translation and tid
+        tranRes = self.session.post(self.baseUrl + '/assemblies/d/' + self.did + '/w/' + self.wid + '/e/' + self.eid + '/translations', data=reqBodyJSON, headers=self.headers)
+        tran = tranRes.json()
+        tid = tran['id']
+
+        # check if request status is DONE and extract external data id
+        reqStatus = ''
+        while reqStatus != 'DONE':
+            statusRes = self.session.get(self.baseUrl + '/translations/' + tid, headers=self.headers)
+            status = statusRes.json()
+            reqStatus = status['requestState']
+        edid = status['resultExternalDataIds'][0]
+
+        # get gltf object
+        gltfRes = self.session.get(self.baseUrl + '/documents/d/' + self.did + '/externaldata/' + edid, headers=self.headers)
+        gltf = gltfRes.json()
+
+        return gltf
+
+
+
+
+
+
+
+    def get_pids(self):
+        
+        pidReq = self.get_parts()
+
+        print(pidReq)
+        pids = {}
+        for pid in pidReq:
+            pids[pid['name']] = pid['partId']
+
+        return pids
+
+
+
+
+
 
 def main():
     pass

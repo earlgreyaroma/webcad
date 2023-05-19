@@ -1,16 +1,325 @@
 {% extends 'base.html' %}
 
+{% block head %}
+  <link href="{{ url_for('static', filename='css/settings.css') }}" rel="stylesheet">
+{% endblock %}
+
 {% block title %}
-    Start
+    Create Admin Account
+{% endblock %}
+
+{% block body_class %}
+  bg-body-tertiary
 {% endblock %}
 
 {% block content %}
-   
-    <br/>
-    <a class="btn btn-primary" href="{{url_for('admin_bp.admin_keys')}}" role="button">Change API Keys</a>
-    <br/>
-    <a class="btn btn-primary" href="{{url_for('admin_bp.admin_logout')}}" role="button">Logout</a>
-    <br/>
-    <h1>Settings</h1>
+
+<div class="container">
+  <main>
+
+    <div class="py-5 text-center">
+      <h2>Settings</h2>
+      <a class="link-opacity-50" href="{{ url_for('admin_bp.index') }}">Log Out</a></p>
+      <a class="link-opacity-50" href="{{ url_for('user_bp.index') }}">Back to Start</a></p>
+    </div>
+
+    <div class="row g-5">
+      <div class="col">
+
+        <form class="needs-validation" method="post" action="{{ url_for('admin_bp.process_keys') }}" novalidate>
+          <div class="row g-3">
+
+            <div class="col-sm-6">
+              <h4 class="mb-3">OnShape API Keys</h4>
+            </div>
+
+            <div class="col-sm-6 d-sm-flex justify-content-sm-end" id="button-container">
+                <button type="submit" class="btn btn-primary" id="save-button">Save Keys</button>
+            </div>
+
+            <div class="col-lg-5">
+              <label for="access-key" class="form-label">Access Key</label>
+              <input type="text" class="form-control" id="access-key" name="access-key" placeholder="" value="" required>
+              <div class="invalid-feedback">
+                Access key is required.
+              </div>
+            </div>
+
+            <div class="col-lg-7">
+              <label for="secret-key" class="form-label">Secret Key</label>
+              <input type="text" class="form-control" id="secret-key" name="secret-key" placeholder="" value="" required>
+              <div class="invalid-feedback">
+                Secret key is required.
+              </div>
+            </div>
+
+            <hr class="my-4">
+          </div>
+        </form>
+
+        <form class="needs-validation" method="post" action="{{ url_for('admin_bp.process_keys', form='form_model') }}" novalidate>
+          <div class="row g-3">
+
+            <div class="col-md-7">
+              <h4 class="mb-3">Edit Model</h4>
+
+              <div class="row">
+                <div class="col-12">
+                  <label for="did" class="form-label">Document</label>
+                  <select class="form-select" id="did" required disabled></select>
+                  <div class="invalid-feedback">
+                    Please select a valid document.
+                  </div>
+                </div>
+
+                <div class="col-12">
+                  <label for="eid" class="form-label">Part or Assembly</label>
+                  <select class="form-select" id="eid" required disabled></select>
+                  <div class="invalid-feedback">
+                    Please provide a valid part or assembly.
+                  </div>
+                </div>
+
+                <div class="col-12">
+                  <label for="veid" class="form-label">Variable Studio</label>
+                  <select class="form-select" id="veid" required disabled></select>
+                  <div class="invalid-feedback">
+                    Please provide a valid variable studio.
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+            
+            <div class="col-md-5 text-center" id="image-container"></div>
+
+            <hr class="my-4">
+            
+            <h4 class="mb-3">Edit Parameter</h4>
+
+            <div class="col-12" id="range-container"></div>
+
+            <div class="col-12 text-center">
+
+              <div class="dropdown-center">
+                <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  Add Parameter Range
+                </button>
+                <div class="dropdown-menu scrollable-dropdown" aria-labelledby="dropdownMenuButton" id="parameter-field"></div>
+              </div>
+
+              <button type="button" class="btn btn-light" id="remove-range">Remove Parameter</button>
+            </div>
+            
+            <hr class="my-4">
+
+            <button class="w-100 btn btn-primary btn-lg mb-10" type="submit">Save Settings</button>
+          </div>
+          
+        </form>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+  $(document).ready(function() {
+
+    var access_key_field = $('#access-key');
+    var secret_key_field = $('#secret-key');
+    var did_field = $('#did');
+    var eid_field = $('#eid');
+    var veid_field = $('#veid');
+    var button_container = $('#button-container');
+    var change_button = $('#change-button');
+    var save_button = $('#save-button');
+    var image_container = $('#image-container');
+    var parameter_field = $('#parameter-field');
+    var parameter_options = parameter_field.children('button');
+    var range_container = $('#range-container');
+    var dropdown_toggle = $('.dropdown-toggle');
+    var dropdown_menu = $('.dropdown-menu');
+    var add_range_button = null;
+
+    // Check if ther are any Api keys for the user
+    {% if api_keys %}
+
+      // Disable key fields
+      var access_key = "{{ api_keys.access_key }}";
+      var secret_key = "{{ api_keys.secret_key }}";
+      access_key_field.val(access_key);
+      access_key_field.prop({'readonly': true,'disabled': true});
+      secret_key_field.val(secret_key);
+      secret_key_field.prop({'readonly': true, 'disabled': true});
+
+      // Change to change button
+      save_button.remove();
+      var new_button = $('<button type="button" class="btn btn-danger" id="change-button">Change Keys</button>');
+      button_container.append(new_button);
+
+      // Fill in document field
+      getFromFlask("{{ url_for('admin_bp.get_dids') }}", function(response) {
+        did_field.empty();
+        var choose_did = $('<option>').val(null).text('Choose...');
+        did_field.append(choose_did);
+        $.each(response, function(key, value) {
+          var option = $('<option>').val(value).text(key);
+            did_field.append(option);
+        });
+        did_field.prop('disabled', false);
+      });
+      
+
+    {% endif %}
+
+    // Check if change button is pressed
+    change_button.click(function() {
+
+      // Enable key fields
+      access_key_field.prop({'readonly': false,'disabled': false});
+      secret_key_field.prop({'readonly': false, 'disabled': false});
+        
+      // Change to save button
+      change_button.remove();
+      var new_button = $('<button type="submit" class="btn btn-primary" id="save-button">Save Keys</button>');
+      button_container.append(new_button);
+    });
+
+    // Check if document was selected
+    did_field.change(function() {
+      var did = $(this).val();
+      postToFlask("{{ url_for('admin_bp.process_did') }}",
+      { did: did },
+      function(response) {
+
+        // Fill eid and veid fields
+        eid_field.empty();
+        veid_field.empty();
+        var choose_eid = $('<option>').val(null).text('Choose...');
+        var choose_veid = $('<option>').val(null).text('Choose...');
+        eid_field.append(choose_eid);
+        veid_field.append(choose_veid);
+        $.each(response[0], function(key, value) {
+          var option_eid = $('<option>').val(value).text(key);
+          eid_field.append(option_eid);
+        });
+        $.each(response[1], function(key, value) {
+          var option_veid = $('<option>').val(value).text(key);
+          veid_field.append(option_veid);
+        });
+        eid_field.prop('disabled', false);
+        veid_field.prop('disabled', false);
+
+      });
+    });
+
+    // Check if part/assembly was selected
+    eid_field.change(function() {
+      var eid = $(this).val();
+      var eid_name = $(this).find('option:selected').text();
+      postToFlask("{{ url_for('admin_bp.process_eid') }}",
+      { 
+        eid: eid,
+        eid_name: eid_name 
+      },
+      function(response) {
+        image_container.children('img').remove();
+        var image_data = $('<img src="data:image/png;base64,' + response + '" id="thumbnail" alt="" class="img-fluid">');
+        image_container.append(image_data);
+      });
+    });
+
+    // Check if part/assembly was selected
+    veid_field.change(function() {
+      var veid = $(this).val();
+      var veid_name = $(this).find('option:selected').text();
+      postToFlask("{{ url_for('admin_bp.process_veid') }}",
+      { 
+        veid: veid,
+        veid_name: veid_name 
+      },
+      function(response) {
+        parameter_options.remove();
+        $.each(response, function(key, value) {
+          // Create a new dropdown button
+          var button = $('<button class="dropdown-item" type="button" value="' + value + '">' + key + '</button>');
+          parameter_field.append(button);
+        });
+      });
+    });
+
+    // Add Range Object
+    parameter_field.on('click', '.dropdown-item', function() {
+      var parameter = $(this).text();
+      var value = $(this).val();
+      
+      
+
+      var rangeHtml = `
+      <div class="form-group range-group border rounded" id="range-mask">
+        <div class="row">
+          <div class="col-sm-11">
+            <div class="row p-3 g-2">
+              <label for="range-mask-range" class="col-sm-3 col-form-label" id="range-mask-param">${parameter}</label>
+              <label for="range-mask-range" class="col-sm-7 col-form-label" id="range-mask-value">${value}</label>
+              <div class="col-sm-2 d-sm-flex justify-content-sm-end">
+                <input type="text" class="form-control form-control-sm" id="range-mask-steps" placeholder="Steps">
+              </div>
+              <div class="col-sm-2 col-md-1">
+                <input type="text" class="form-control form-control-sm" id="range-mask-min" placeholder="Min">
+              </div>
+              <div class="col-sm-8 col-md-10">
+                <input type="range" class="form-range" id="range-mask-range">
+              </div>
+              <div class="col-sm-2 col-md-1">
+                <input type="text" class="form-control form-control-sm" id="range-mask-max" placeholder="Max">
+              </div>
+            </div>
+          </div>
+          <div class="col-sm-1 col-md-1">
+            <button class="btn btn-primary" type="button" id="add-range-button">Add</button>
+          </div>
+        </div>
+      </div>
+      `;
+
+      range_container.append(rangeHtml);
+
+      add_range_button = $('#add-range-button');
+      // Remove Range Object
+      add_range_button.click(function() {
+
+        var mask_param = $('#range-mask-param').text();
+        var mask_value = $('#range-mask-value').text();
+        var mask_steps = $('#range-mask-steps').val();
+        var mask_min = $('#range-mask-min').val();
+        var mask_max = $('#range-mask-max').val();
+        postToFlask(
+          '{{ url_for("admin_bp.process_range") }}',
+          { 
+            parameter: mask_param,
+            value: mask_value,
+            steps: mask_steps,
+            min: mask_min,
+            max: mask_max
+          },
+          function(response) {
+            if (!$.isEmptyObject(response)) {
+              console.log(response);
+              $('#range-mask').remove();
+              dropdown_toggle.prop('disabled', false);
+              dropdown_toggle.removeClass('disabled');
+              dropdown_menu.addClass('show');
+        }});
+      });
+
+      dropdown_toggle.prop('disabled', true);
+      dropdown_toggle.addClass('disabled');
+      dropdown_menu.removeClass('show');
+    });
+
+  });
+</script>
 
 {% endblock %}
